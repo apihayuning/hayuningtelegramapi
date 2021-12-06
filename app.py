@@ -1,3 +1,4 @@
+# flask_server
 from flask import Flask, request, jsonify
 from flask_restful import Resource, Api
 from flask_cors import CORS
@@ -107,10 +108,12 @@ class GetPhoneId(Resource):
         return identitas
 
     def post(self):
+        _from = request.form["from"]
         phone = request.form["phone"]
 
         async def main(phone):
-            client = TelegramClient('+6283862243797', api_id, api_hash)
+            # client = TelegramClient('+6283862243797', api_id, api_hash) # old
+            client = TelegramClient(f'+{_from}', api_id, api_hash) # updated
             await client.connect()
 
             try:
@@ -156,12 +159,14 @@ class SendMessage(Resource):
 
 class GetMessages(Resource):
     def post(self):
-        phone = request.form["phone"]
+        _from = request.form["from"] # updated
+        phone = request.form["to"] # updated
         limit = request.form["limit"]
         
         async def main():
             global posts
-            client = TelegramClient('+6283862243797', api_id, api_hash)
+            # client = TelegramClient('+6283862243797', api_id, api_hash) #old
+            client = TelegramClient(f'+{_from}', api_id, api_hash) # updated
             await client.connect()
 
             channel_username = phone
@@ -183,12 +188,12 @@ class GetMessages(Resource):
         d= posts.to_dict()['messages']
         return jsonify(d) # return jsonify(posts.to_dict())
 
-api.add_resource(CreateSessionApi, "/auth", methods=["POST"]) # request code
-api.add_resource(InputCodeApi, "/code", methods=["POST"]) # input code
+api.add_resource(CreateSessionApi, "/auth", methods=["POST"]) # requestCode
+api.add_resource(InputCodeApi, "/code", methods=["POST"]) # inputCode
 api.add_resource(LogOut, "/logout", methods=["POST"]) # logout
-api.add_resource(SendMessage, "/sendmsg", methods=["POST"]) # Send Message
-api.add_resource(GetPhoneId, "/getphoneid", methods=["GET", "POST"]) # get phone id
-api.add_resource(GetMessages, "/getmessages", methods=["POST"]) # get Messages
+api.add_resource(SendMessage, "/sendmsg", methods=["POST"]) # sendMessage
+api.add_resource(GetPhoneId, "/getphoneid", methods=["GET", "POST"]) # getPhoneId
+api.add_resource(GetMessages, "/getmessages", methods=["POST"]) # getMessages
 
 if __name__ == "__main__":
     app.run(debug=True)
